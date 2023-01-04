@@ -62,6 +62,7 @@ const options = {
       //   window.alert('Please choose a date in the future');
     } else {
       startButton.disabled = false;
+      startButton.removeEventListener('click', reloadWarning);
     }
   },
 };
@@ -69,29 +70,32 @@ const options = {
 const fp = flatpickr(input, options);
 
 function onStart() {
+  startButton.disabled = true;
+  input.disabled = true;
   const timerId = setInterval(() => {
-    startButton.disabled = true;
-    input.disabled = true;
     const ms = fp.selectedDates[0].getTime() - new Date().getTime();
-    const { days, hours, minutes, seconds } = convertMs(ms);
-    daysText.textContent = addLeadingZero(days);
-    hoursText.textContent = addLeadingZero(hours);
-    minutesText.textContent = addLeadingZero(minutes);
-    secondsText.textContent = addLeadingZero(seconds);
-    if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
-      clearInterval(timerId);
+    if (ms <= 0) {
       onStop();
+      clearInterval(timerId);
+    } else {
+      const { days, hours, minutes, seconds } = convertMs(ms);
+      daysText.textContent = addLeadingZero(days);
+      hoursText.textContent = addLeadingZero(hours);
+      minutesText.textContent = addLeadingZero(minutes);
+      secondsText.textContent = addLeadingZero(seconds);
     }
   }, 1000);
 }
 
 function onStop() {
-  startButton.removeEventListener('click', onStart);
+  // startButton.removeEventListener('click', onStart);
   startButton.disabled = false;
   input.disabled = false;
-  startButton.addEventListener('click', warning =>
-    Notiflix.Notify.warning('Please reload the page to start the timer')
-  );
+  startButton.addEventListener('click', reloadWarning);
+}
+
+function reloadWarning() {
+  Notiflix.Notify.warning('Please reload the page to start the timer');
 }
 
 function addLeadingZero(value) {
